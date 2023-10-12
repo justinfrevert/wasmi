@@ -1050,6 +1050,7 @@ impl Interpreter {
                     match &desc.ftype {
                         specs::types::FunctionType::WasmFunction => StepInfo::Call {
                             index: desc.func_index,
+                            function_name: tracer.lookup_function_name(desc.func_index),
                         },
                         specs::types::FunctionType::HostFunction {
                             plugin,
@@ -1107,6 +1108,7 @@ impl Interpreter {
                 } = pre_status.unwrap()
                 {
                     let tracer = self.tracer.clone().unwrap();
+                    let tracer = tracer.borrow();
 
                     let table = context
                         .module()
@@ -1114,13 +1116,14 @@ impl Interpreter {
                         .unwrap();
                     let func_ref = table.get(offset).unwrap().unwrap();
 
-                    let func_idx = tracer.borrow().lookup_function(&func_ref);
+                    let func_idx = tracer.lookup_function(&func_ref);
 
                     StepInfo::CallIndirect {
                         table_index: table_idx,
                         type_index: type_idx,
                         offset,
                         func_index: func_idx,
+                        function_name: tracer.lookup_function_name(func_idx),
                     }
                 } else {
                     unreachable!()
@@ -2028,6 +2031,7 @@ impl Interpreter {
 
                         let inst_entry = InstructionTableEntry {
                             fid: function,
+                            function_name: tracer.lookup_function_name(function),
                             iid: pc,
                             opcode: instruction,
                         };

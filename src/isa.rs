@@ -445,10 +445,7 @@ impl<'a> Instruction<'a> {
 
                 match &func_desc.ftype {
                     specs::types::FunctionType::WasmFunction => Opcode::Call {
-                        index: function_mapping
-                            .get(&func_index)
-                            .unwrap()
-                            .func_index,
+                        index: function_mapping.get(&func_index).unwrap().func_index,
                     },
                     specs::types::FunctionType::HostFunction {
                         plugin,

@@ -56,6 +56,8 @@ impl Tracer {
         wasm_input_function_idx: u32,
         keep_value: Option<u64>,
     ) {
+        let function_name = self.lookup_function_name(fid);
+
         let mut inst = PhantomFunction::build_phantom_function_instructions(
             &callee_sig,
             wasm_input_function_idx,
@@ -76,6 +78,7 @@ impl Tracer {
             self.etable.push(
                 InstructionTableEntry {
                     fid,
+                    function_name: function_name.clone(),
                     iid,
                     opcode: inst.next().unwrap().into(&self.function_index_translation),
                 },
@@ -90,6 +93,7 @@ impl Tracer {
             self.etable.push(
                 InstructionTableEntry {
                     fid,
+                    function_name: function_name.clone(),
                     iid,
                     opcode: inst.next().unwrap().into(&self.function_index_translation),
                 },
@@ -116,6 +120,7 @@ impl Tracer {
                 self.etable.push(
                     InstructionTableEntry {
                         fid,
+                        function_name: function_name.clone(),
                         iid,
                         opcode: inst.next().unwrap().into(&self.function_index_translation),
                     },
@@ -135,6 +140,7 @@ impl Tracer {
         self.etable.push(
             InstructionTableEntry {
                 fid,
+                function_name,
                 iid,
                 opcode: inst.next().unwrap().into(&self.function_index_translation),
             },
