@@ -71,10 +71,18 @@ use std::collections::HashMap;
 
 use alloc::vec::Vec;
 use parity_wasm::elements::ValueType;
-use specs::{
-    itable::{BinOp, BitOp, BrTarget, ConversionOp, Opcode, RelOp, ShiftOp, TestOp, UnaryOp},
-    mtable::{MemoryReadSize, MemoryStoreSize, VarType},
-};
+use specs::itable::BinOp;
+use specs::itable::BitOp;
+use specs::itable::BrTarget;
+use specs::itable::ConversionOp;
+use specs::itable::Opcode;
+use specs::itable::RelOp;
+use specs::itable::ShiftOp;
+use specs::itable::TestOp;
+use specs::itable::UnaryOp;
+use specs::mtable::MemoryReadSize;
+use specs::mtable::MemoryStoreSize;
+use specs::mtable::VarType;
 
 use crate::tracer::FuncDesc;
 
@@ -482,7 +490,11 @@ impl<'a> Instruction<'a> {
                 size: MemoryReadSize::I64,
             },
             Instruction::F32Load(_) => todo!(),
-            Instruction::F64Load(_) => todo!(),
+            Instruction::F64Load(offset) => Opcode::Load {
+                offset,
+                vtype: VarType::F64,
+                size: MemoryReadSize::F64,
+            },
             Instruction::I32Load8S(offset) => Opcode::Load {
                 offset,
                 vtype: VarType::I32,
@@ -544,7 +556,11 @@ impl<'a> Instruction<'a> {
                 size: MemoryStoreSize::Byte64,
             },
             Instruction::F32Store(_) => todo!(),
-            Instruction::F64Store(_) => todo!(),
+            Instruction::F64Store(offset) => Opcode::Store {
+                offset,
+                vtype: VarType::F64,
+                size: MemoryStoreSize::Byte64,
+            },
             Instruction::I32Store8(offset) => Opcode::Store {
                 offset,
                 vtype: VarType::I32,
@@ -581,7 +597,10 @@ impl<'a> Instruction<'a> {
                 value: v as u64,
             },
             Instruction::F32Const(_) => todo!(),
-            Instruction::F64Const(_) => todo!(),
+            Instruction::F64Const(v) => Opcode::Const {
+                vtype: VarType::F64,
+                value: v as u64,
+            },
             Instruction::I32Eqz => Opcode::Test {
                 class: TestOp::Eqz,
                 vtype: VarType::I32,
@@ -676,8 +695,14 @@ impl<'a> Instruction<'a> {
             Instruction::F32Gt => todo!(),
             Instruction::F32Le => todo!(),
             Instruction::F32Ge => todo!(),
-            Instruction::F64Eq => todo!(),
-            Instruction::F64Ne => todo!(),
+            Instruction::F64Eq => Opcode::Rel {
+                class: RelOp::Eq,
+                vtype: VarType::F64,
+            },
+            Instruction::F64Ne => Opcode::Rel {
+                class: RelOp::Ne,
+                vtype: VarType::F64,
+            },
             Instruction::F64Lt => todo!(),
             Instruction::F64Gt => todo!(),
             Instruction::F64Le => todo!(),
@@ -840,8 +865,16 @@ impl<'a> Instruction<'a> {
             Instruction::F32Min => todo!(),
             Instruction::F32Max => todo!(),
             Instruction::F32Copysign => todo!(),
-            Instruction::F64Abs => todo!(),
-            Instruction::F64Neg => todo!(),
+            Instruction::F64Abs => Opcode::Const {
+                vtype: VarType::F64,
+                // CAUTION: Need to check what to do here
+                value: 0,
+            },
+            Instruction::F64Neg => Opcode::Const {
+                vtype: VarType::F64,
+                // CAUTION: Need to check what to do here
+                value: 0,
+            },
             Instruction::F64Ceil => todo!(),
             Instruction::F64Floor => todo!(),
             Instruction::F64Trunc => todo!(),
@@ -849,8 +882,14 @@ impl<'a> Instruction<'a> {
             Instruction::F64Sqrt => todo!(),
             Instruction::F64Add => todo!(),
             Instruction::F64Sub => todo!(),
-            Instruction::F64Mul => todo!(),
-            Instruction::F64Div => todo!(),
+            Instruction::F64Mul => Opcode::Bin {
+                class: BinOp::Mul,
+                vtype: VarType::F64,
+            },
+            Instruction::F64Div => Opcode::Bin {
+                class: BinOp::UnsignedDiv,
+                vtype: VarType::F64,
+            },
             Instruction::F64Min => todo!(),
             Instruction::F64Max => todo!(),
             Instruction::F64Copysign => todo!(),
@@ -879,10 +918,16 @@ impl<'a> Instruction<'a> {
             Instruction::F64ConvertSI32 => todo!(),
             Instruction::F64ConvertUI32 => todo!(),
             Instruction::F64ConvertSI64 => todo!(),
-            Instruction::F64ConvertUI64 => todo!(),
+            // CAUTION: I haven't looked into this at all. Could cause issues
+            Instruction::F64ConvertUI64 => Opcode::Conversion {
+                class: ConversionOp::I64ExtendI32u,
+            },
             Instruction::F64PromoteF32 => todo!(),
             Instruction::I32ReinterpretF32 => todo!(),
-            Instruction::I64ReinterpretF64 => todo!(),
+            // CAUTION: I haven't looked into this at all. Could cause issues
+            Instruction::I64ReinterpretF64 => Opcode::Conversion {
+                class: ConversionOp::I64ExtendI32u,
+            },
             Instruction::F32ReinterpretI32 => todo!(),
             Instruction::F64ReinterpretI64 => todo!(),
             Instruction::I32Extend8S => Opcode::Conversion {

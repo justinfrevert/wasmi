@@ -1,20 +1,21 @@
-use crate::{
-    host::Externals,
-    isa::{self},
-    module::ModuleInstance,
-    runner::{check_function_args, Interpreter, InterpreterState, StackRecycler},
-    tracer::Tracer,
-    RuntimeValue,
-    Signature,
-    Trap,
-    ValueType,
-};
-use alloc::{
-    borrow::Cow,
-    rc::{Rc, Weak},
-    vec::Vec,
-};
-use core::{cell::RefCell, fmt};
+use crate::host::Externals;
+use crate::isa::{self};
+use crate::module::ModuleInstance;
+use crate::runner::check_function_args;
+use crate::runner::Interpreter;
+use crate::runner::InterpreterState;
+use crate::runner::StackRecycler;
+use crate::tracer::Tracer;
+use crate::RuntimeValue;
+use crate::Signature;
+use crate::Trap;
+use crate::ValueType;
+use alloc::borrow::Cow;
+use alloc::rc::Rc;
+use alloc::rc::Weak;
+use alloc::vec::Vec;
+use core::cell::RefCell;
+use core::fmt;
 use parity_wasm::elements::Local;
 
 /// Reference to a function (See [`FuncInstance`] for details).

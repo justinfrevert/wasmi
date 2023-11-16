@@ -1,37 +1,45 @@
-use crate::{
-    func::{FuncBody, FuncInstance, FuncRef},
-    global::{GlobalInstance, GlobalRef},
-    host::Externals,
-    imports::ImportResolver,
-    memory::MemoryRef,
-    memory_units::Pages,
-    nan_preserving_float::{F32, F64},
-    runner::StackRecycler,
-    table::TableRef,
-    tracer::Tracer,
-    types::{GlobalDescriptor, MemoryDescriptor, TableDescriptor},
-    Error,
-    MemoryInstance,
-    Module,
-    RuntimeValue,
-    Signature,
-    TableInstance,
-    Trap,
-};
-use alloc::{
-    borrow::ToOwned,
-    collections::BTreeMap,
-    rc::Rc,
-    string::{String, ToString},
-    vec::Vec,
-};
-use core::{
-    cell::{Ref, RefCell},
-    fmt,
-};
-use parity_wasm::elements::{External, InitExpr, Instruction, Internal, ResizableLimits, Type};
+use crate::func::FuncBody;
+use crate::func::FuncInstance;
+use crate::func::FuncRef;
+use crate::global::GlobalInstance;
+use crate::global::GlobalRef;
+use crate::host::Externals;
+use crate::imports::ImportResolver;
+use crate::memory::MemoryRef;
+use crate::memory_units::Pages;
+use crate::nan_preserving_float::F32;
+use crate::nan_preserving_float::F64;
+use crate::runner::StackRecycler;
+use crate::table::TableRef;
+use crate::tracer::Tracer;
+use crate::types::GlobalDescriptor;
+use crate::types::MemoryDescriptor;
+use crate::types::TableDescriptor;
+use crate::Error;
+use crate::MemoryInstance;
+use crate::Module;
+use crate::RuntimeValue;
+use crate::Signature;
+use crate::TableInstance;
+use crate::Trap;
+use alloc::borrow::ToOwned;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use core::cell::Ref;
+use core::cell::RefCell;
+use core::fmt;
+use parity_wasm::elements::External;
+use parity_wasm::elements::InitExpr;
+use parity_wasm::elements::Instruction;
+use parity_wasm::elements::Internal;
+use parity_wasm::elements::ResizableLimits;
+use parity_wasm::elements::Type;
 use specs::configure_table::ConfigureTable;
-use validation::{DEFAULT_MEMORY_INDEX, DEFAULT_TABLE_INDEX};
+use validation::DEFAULT_MEMORY_INDEX;
+use validation::DEFAULT_TABLE_INDEX;
 
 /// Reference to a [`ModuleInstance`].
 ///
@@ -635,6 +643,8 @@ impl ModuleInstance {
                     ExternVal::Memory(memory)
                 }
                 External::Global(ref global_type) => {
+                    println!("4");
+
                     let global_descriptor = GlobalDescriptor::from_elements(global_type);
                     let global =
                         imports.resolve_global(module_name, field_name, &global_descriptor)?;
@@ -710,19 +720,19 @@ impl ModuleInstance {
     pub fn invoke_export_trace<E: Externals>(
         &self,
         func_name: &str,
-        args: &[RuntimeValue],
+        // args: &[RuntimeValue],
+        args: Vec<RuntimeValue>,
         externals: &mut E,
         tracer: Rc<RefCell<Tracer>>,
     ) -> Result<Option<RuntimeValue>, Error> {
         let func_instance = self.func_by_name(func_name)?;
-
         {
             let mut tracer = tracer.borrow_mut();
 
             tracer.last_jump_eid.push(0);
         }
 
-        FuncInstance::invoke_trace(&func_instance, args, externals, tracer).map_err(Error::Trap)
+        FuncInstance::invoke_trace(&func_instance, &args, externals, tracer).map_err(Error::Trap)
     }
 
     /// Invoke exported function by a name using recycled stacks.
@@ -829,17 +839,17 @@ impl<'a> NotStartedModuleRef<'a> {
         self,
         state: &mut E,
         tracer: Rc<RefCell<Tracer>>,
+        args: Vec<RuntimeValue>,
     ) -> Result<ModuleRef, Trap> {
         {
             tracer.borrow_mut().last_jump_eid.push(0);
         }
-
         if let Some(start_fn_idx) = self.loaded_module.module().start_section() {
             let start_func = self
                 .instance
                 .func_by_index(start_fn_idx)
                 .expect("Due to validation start function should exists");
-            FuncInstance::invoke_trace(&start_func, &[], state, tracer)?;
+            FuncInstance::invoke_trace(&start_func, &args, state, tracer)?;
         }
         Ok(self.instance)
     }
@@ -952,8 +962,13 @@ pub fn check_limits(limits: &ResizableLimits) -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ExternVal, ModuleInstance};
-    use crate::{func::FuncInstance, imports::ImportsBuilder, types::Signature, Module, ValueType};
+    use super::ExternVal;
+    use super::ModuleInstance;
+    use crate::func::FuncInstance;
+    use crate::imports::ImportsBuilder;
+    use crate::types::Signature;
+    use crate::Module;
+    use crate::ValueType;
 
     fn parse_wat(source: &str) -> Module {
         let wasm_binary = wat::parse_str(source).expect("Failed to parse wat source");

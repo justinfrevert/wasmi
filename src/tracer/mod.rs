@@ -1,28 +1,30 @@
 use std::collections::HashMap;
 
 use regex::Regex;
-use specs::{
-    brtable::{ElemEntry, ElemTable},
-    configure_table::ConfigureTable,
-    etable::EventTable,
-    host_function::HostFunctionDesc,
-    itable::{InstructionTable, InstructionTableEntry},
-    jtable::{JumpTable, StaticFrameEntry},
-    mtable::VarType,
-    types::FunctionType,
-};
+use specs::brtable::ElemEntry;
+use specs::brtable::ElemTable;
+use specs::configure_table::ConfigureTable;
+use specs::etable::EventTable;
+use specs::host_function::HostFunctionDesc;
+use specs::itable::InstructionTable;
+use specs::itable::InstructionTableEntry;
+use specs::jtable::JumpTable;
+use specs::jtable::StaticFrameEntry;
+use specs::mtable::VarType;
+use specs::types::FunctionType;
 
-use crate::{
-    runner::{from_value_internal_to_u64_with_typ, ValueInternal},
-    FuncRef,
-    GlobalRef,
-    MemoryRef,
-    Module,
-    ModuleRef,
-    Signature,
-};
+use crate::runner::from_value_internal_to_u64_with_typ;
+use crate::runner::ValueInternal;
+use crate::FuncRef;
+use crate::GlobalRef;
+use crate::MemoryRef;
+use crate::Module;
+use crate::ModuleRef;
+use crate::Signature;
 
-use self::{etable::ETable, imtable::IMTable, phantom::PhantomFunction};
+use self::etable::ETable;
+use self::imtable::IMTable;
+use self::phantom::PhantomFunction;
 
 pub mod etable;
 pub mod imtable;
@@ -189,7 +191,7 @@ impl Tracer {
         }
 
         for inst in insts {
-            println!("{:?}", inst);
+            println!("insts {:?}", inst);
         }
     }
 

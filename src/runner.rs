@@ -1,45 +1,56 @@
 #![allow(clippy::unnecessary_wraps)]
 
-use crate::{
-    func::{FuncInstance, FuncInstanceInternal, FuncRef},
-    host::Externals,
-    isa::{self, DropKeep, Keep},
-    memory::MemoryRef,
-    memory_units::Pages,
-    module::ModuleRef,
-    nan_preserving_float::{F32, F64},
-    tracer::{
-        etable::{ETable, RunInstructionTracePre},
-        Tracer,
-    },
-    value::{
-        ArithmeticOps,
-        ExtendInto,
-        Float,
-        Integer,
-        LittleEndianConvert,
-        TransmuteInto,
-        TryTruncateInto,
-        WrapInto,
-    },
-    RuntimeValue,
-    Signature,
-    Trap,
-    TrapCode,
-    ValueType,
-};
-use alloc::{boxed::Box, vec::Vec};
-use core::{cell::RefCell, fmt, ops, u32, usize};
+use crate::func::FuncInstance;
+use crate::func::FuncInstanceInternal;
+use crate::func::FuncRef;
+use crate::host::Externals;
+use crate::isa::DropKeep;
+use crate::isa::Keep;
+use crate::isa::{self};
+use crate::memory::MemoryRef;
+use crate::memory_units::Pages;
+use crate::module::ModuleRef;
+use crate::nan_preserving_float::F32;
+use crate::nan_preserving_float::F64;
+use crate::tracer::etable::ETable;
+use crate::tracer::etable::RunInstructionTracePre;
+use crate::tracer::Tracer;
+use crate::value::ArithmeticOps;
+use crate::value::ExtendInto;
+use crate::value::Float;
+use crate::value::Integer;
+use crate::value::LittleEndianConvert;
+use crate::value::TransmuteInto;
+use crate::value::TryTruncateInto;
+use crate::value::WrapInto;
+use crate::RuntimeValue;
+use crate::Signature;
+use crate::Trap;
+use crate::TrapCode;
+use crate::ValueType;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use core::cell::RefCell;
+use core::fmt;
+use core::ops;
+use core::u32;
+use core::usize;
 use parity_wasm::elements::Local;
-use specs::{
-    external_host_call_table::ExternalHostCallSignature,
-    itable::{BinOp, BitOp, InstructionTableEntry, RelOp, ShiftOp, UnaryOp},
-    jtable::JumpTableEntry,
-    mtable::{MemoryReadSize, MemoryStoreSize, VarType},
-    step::StepInfo,
-};
+use specs::external_host_call_table::ExternalHostCallSignature;
+use specs::itable::BinOp;
+use specs::itable::BitOp;
+use specs::itable::InstructionTableEntry;
+use specs::itable::RelOp;
+use specs::itable::ShiftOp;
+use specs::itable::UnaryOp;
+use specs::jtable::JumpTableEntry;
+use specs::mtable::MemoryReadSize;
+use specs::mtable::MemoryStoreSize;
+use specs::mtable::VarType;
+use specs::step::StepInfo;
 use std::rc::Rc;
-use validation::{DEFAULT_MEMORY_INDEX, DEFAULT_TABLE_INDEX};
+use validation::DEFAULT_MEMORY_INDEX;
+use validation::DEFAULT_TABLE_INDEX;
 
 /// Maximum number of bytes on the value stack.
 /// wasmi's default value is 1024 * 1024,
@@ -129,6 +140,7 @@ pub fn from_value_internal_to_u64_with_typ(vtype: VarType, val: ValueInternal) -
     match vtype {
         VarType::I32 => val.0 as u32 as u64,
         VarType::I64 => val.0 as u64,
+        VarType::F64 => val.0 as u64,
     }
 }
 
@@ -403,6 +415,7 @@ impl Interpreter {
                             // Check if `return_val` matches the signature.
                             let value_ty = return_val.as_ref().map(|val| val.value_type());
                             let expected_ty = nested_func.signature().return_type();
+
                             if value_ty != expected_ty {
                                 return Err(TrapCode::UnexpectedSignature.into());
                             }
@@ -834,7 +847,7 @@ impl Interpreter {
             }),
 
             _ => {
-                println!("{:?}", *instructions);
+                println!("instructions{:?}", *instructions);
                 unimplemented!()
             }
         }
@@ -1980,7 +1993,7 @@ impl Interpreter {
             }
 
             _ => {
-                println!("{:?}", instructions);
+                println!("instrucitons {:?}", instructions);
                 unimplemented!()
             }
         }
@@ -2416,6 +2429,10 @@ impl Interpreter {
                 .expect("Due to validation type should exists");
 
             if &*required_function_type != actual_function_type {
+                println!(
+                    "Expected function type {:?}. got {:?}",
+                    required_function_type, actual_function_type
+                );
                 return Err(TrapCode::UnexpectedSignature);
             }
         }
@@ -3095,7 +3112,15 @@ pub fn check_function_args(signature: &Signature, args: &[RuntimeValue]) -> Resu
         .params()
         .iter()
         .zip(args.iter().map(|param_value| param_value.value_type()))
-        .any(|(expected_type, actual_type)| &actual_type != expected_type)
+        .any(|(expected_type, actual_type)| {
+            if &actual_type != expected_type {
+                println!(
+                    "In signature Expected type {:?}. got {:?}",
+                    expected_type, &actual_type
+                );
+            }
+            &actual_type != expected_type
+        })
     {
         return Err(TrapCode::UnexpectedSignature.into());
     }

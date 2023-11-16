@@ -1,4 +1,9 @@
-use crate::{value::FromValue, RuntimeValue, Trap, TrapCode};
+use std::backtrace::Backtrace;
+
+use crate::value::FromValue;
+use crate::RuntimeValue;
+use crate::Trap;
+use crate::TrapCode;
 
 /// Wrapper around slice of [`Value`] for using it
 /// as an argument list conveniently.
@@ -58,8 +63,13 @@ impl<'a> RuntimeArgs<'a> {
     where
         T: FromValue,
     {
-        let value = self.nth_value_checked(idx).expect("Invalid argument index");
-        value.try_into().expect("Unexpected argument type")
+        let value = self.nth_value_checked(idx);
+
+        if value.is_err() {
+            println!("Custom backtrace: {}", Backtrace::capture());
+        }
+
+        value.unwrap().try_into().expect("Unexpected argument type")
     }
 
     /// Total number of arguments

@@ -3,29 +3,28 @@
 
 extern crate wasmi;
 
-use std::{env::args, fs::File};
-use wasmi::{
-    memory_units::*,
-    Error,
-    FuncInstance,
-    FuncRef,
-    GlobalDescriptor,
-    GlobalInstance,
-    GlobalRef,
-    ImportsBuilder,
-    MemoryDescriptor,
-    MemoryInstance,
-    MemoryRef,
-    Module,
-    ModuleImportResolver,
-    ModuleInstance,
-    NopExternals,
-    RuntimeValue,
-    Signature,
-    TableDescriptor,
-    TableInstance,
-    TableRef,
-};
+use std::env::args;
+use std::fs::File;
+use wasmi::memory_units::*;
+use wasmi::Error;
+use wasmi::FuncInstance;
+use wasmi::FuncRef;
+use wasmi::GlobalDescriptor;
+use wasmi::GlobalInstance;
+use wasmi::GlobalRef;
+use wasmi::ImportsBuilder;
+use wasmi::MemoryDescriptor;
+use wasmi::MemoryInstance;
+use wasmi::MemoryRef;
+use wasmi::Module;
+use wasmi::ModuleImportResolver;
+use wasmi::ModuleInstance;
+use wasmi::NopExternals;
+use wasmi::RuntimeValue;
+use wasmi::Signature;
+use wasmi::TableDescriptor;
+use wasmi::TableInstance;
+use wasmi::TableRef;
 
 fn load_from_file(filename: &str) -> Module {
     use std::io::prelude::*;

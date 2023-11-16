@@ -1,21 +1,32 @@
-use super::{
-    super::{Global, Memory, Table},
-    bytecode::{BrTable, FuncIdx, GlobalIdx, Instruction, LocalIdx, Offset, SignatureIdx},
-    AsContextMut,
-    DropKeep,
-    EngineInner,
-    FunctionExecutionOutcome,
-    FunctionFrame,
-    ResolvedFuncBody,
-    Target,
-    ValueStack,
-    VisitInstruction,
-};
-use crate::{
-    core::{Trap, TrapCode, F32, F64},
-    Func,
-};
-use wasmi_core::{memory_units::Pages, ExtendInto, LittleEndianConvert, UntypedValue, WrapInto};
+use super::super::Global;
+use super::super::Memory;
+use super::super::Table;
+use super::bytecode::BrTable;
+use super::bytecode::FuncIdx;
+use super::bytecode::GlobalIdx;
+use super::bytecode::Instruction;
+use super::bytecode::LocalIdx;
+use super::bytecode::Offset;
+use super::bytecode::SignatureIdx;
+use super::AsContextMut;
+use super::DropKeep;
+use super::EngineInner;
+use super::FunctionExecutionOutcome;
+use super::FunctionFrame;
+use super::ResolvedFuncBody;
+use super::Target;
+use super::ValueStack;
+use super::VisitInstruction;
+use crate::core::Trap;
+use crate::core::TrapCode;
+use crate::core::F32;
+use crate::core::F64;
+use crate::Func;
+use wasmi_core::memory_units::Pages;
+use wasmi_core::ExtendInto;
+use wasmi_core::LittleEndianConvert;
+use wasmi_core::UntypedValue;
+use wasmi_core::WrapInto;
 
 /// The outcome of a `wasmi` instruction execution.
 ///
@@ -468,7 +479,12 @@ where
                     signature_index,
                 )
             });
+
         if actual_signature != expected_signature {
+            println!(
+                "Expected sig {:?}. got {:?}",
+                expected_signature, actual_signature
+            );
             return Err(TrapCode::UnexpectedSignature).map_err(Into::into);
         }
         Ok(ExecutionOutcome::ExecuteCall(func))
